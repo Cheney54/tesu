@@ -110,7 +110,7 @@ btns.forEach(function (ele, index) {
             now += spood
             document.documentElement.scrollTop = now
             time += 30
-            if (time === 30) {
+            if (time === 300) {
 
                 clearInterval(s)
                 now = ot

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <input type="file" value="" id="upload" accept="image/*">
+    </div>
+    <canvas id="canvas"></canvas>
+    <div>
+        <input type="text" value="" id="downloadFileName" placeholder="文件名">
+        <a href="" id="btn" download="download">download</a>
+    </div>
+
+    <img src="" alt="" id="show">
+
+</body>
+<style>
+	#show {
+		display: none;
+	}
+    #canvas{
+        background: white;
+    }
+</style>
+<script>
+function getResultImgUrl(img) {
+    var canvas = document.getElementById("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    var c = ctx.getImageData(0, 0, img.width, img.height);
+
+    // console.log(c.data);
+    var colorList = [];
+    for (var i = 0; i < c.height; ++i) {
+        for (var j = 0; j < c.width; ++j) {
+            var x = i * 4 * c.width + 4 * j,  
+                r = c.data[x],
+                g = c.data[x + 1],
+                b = c.data[x + 2],
+                a = c.data[x + 3];
+
+            if (r === 255 && g === 255 && b === 255) {
+                a = 0;
+            } else if (r > 200 || g > 200 || b > 200) {
+                r = 255;
+                g = 255;
+                b = 255;
+                a = 0;
+            }
+            if (r < 35 || g < 35 || b < 35) {
+                r = 0;
+                g = 0;
+                b = 0;
+            }
+
+            colorList.push({
+                r, g, b, a
+            })
+        }
+    }
+    console.log(colorList);
+    let res = [];
+    colorList.forEach(item => {
+        res.push(item.r);
+        res.push(item.g);
+        res.push(item.b);
+        res.push(item.a);
+    });
+    for (let i = 0; i < res.length; i ++) {
+        c.data[i] = res[i];
+    }
+    for (let i = 0; i < c.data.length; i += 4) {
+      // 当该像素是透明的，则设置成白色
+      if (c.data[i + 3] === 0) {
+        c.data[i] = 255;
+        c.data[i + 1] = 255;
+        c.data[i + 2] = 255;
+        c.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(c, 0, 0, 0, 0, parseInt(img.width), parseInt(img.height));
+    document.getElementById('btn').href = canvas.toDataURL();
+}
+
+function changepic() {
+    var reads = new FileReader();
+    var f = document.getElementById('upload').files[0];
+    reads.readAsDataURL(f);
+    reads.onload = function (e) {
+        document.getElementById('show').src = this.result
+    };
+}
+window.onload = function () {
+    document.getElementById('upload').onchange = function () {
+        changepic()
+    };
+    document.getElementById('downloadFileName').onchange = function () {
+        document.getElementById('btn').download = this.value;
+    }
+    var img = document.getElementById('show');
+    img.src = "";
+    img.isLoad = false;
+    img.onload = function () {
+        if (!img.isLoad && img.src) {
+            getResultImgUrl(img);
+            img.isLoad = true;
+        }
+    }
+}
+
+
+
+</script>
+</html>
